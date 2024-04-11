@@ -4,7 +4,6 @@
 
 import random
 
-
 def print_board(board, width, height):
     """Prints the board to the console"""
 

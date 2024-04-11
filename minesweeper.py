@@ -4,7 +4,7 @@
 # Clock font by Style 7
 
 import pygame
-from Assets import ms_funct
+import ms_funct
 import os
 pygame.font.init()
 
@@ -37,7 +37,7 @@ GAME_STARTING_WIDTH = WIDTH_OF_BORDER - MINE_BORDER // 2
 FPS = 60
 
 # Defines colors
-LIGHT_GRAY = (225, 225, 225)
+LIGHT_GRAY = (200, 200, 200)
 GRAY = (192, 192, 192)
 DARK_GRAY = (128, 128, 128)
 WHITE = (255, 255, 255)
@@ -52,8 +52,8 @@ YELLOW = (255, 255, 0)
 
 # Defines fonts
 NUMBER_FONT = pygame.font.Font(os.path.join(
-    'Assets', 'ms_font.ttf'), 24)
-DISPLAY_FONT = pygame.font.Font(os.path.join('Assets', 'clock_font.ttf'), 28)
+    'Ai_Final_Project/Assets', 'ms_font.ttf'), 24)
+DISPLAY_FONT = pygame.font.Font(os.path.join('Ai_Final_Project/Assets', 'clock_font.ttf'), 28)
 
 # Defines events
 HIT_MINE = pygame.USEREVENT + 1
