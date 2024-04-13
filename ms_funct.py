@@ -182,6 +182,7 @@ def hint(g_board, u_board, width, height, mines):
         for j in range(width):
             if u_board[i][j] == "*" or (u_board[i][j] == "F" and g_board[i][j]):
                 remaining_spaces += 1
+    
     if remaining_spaces > mines:
         x = random.randrange(0, height)
         y = random.randrange(0, width)
@@ -197,6 +198,14 @@ def hint(g_board, u_board, width, height, mines):
         return update
     return False
 
+def ai_move(u_board, width, height, mines):
+  print("Making a move")
+  x = random.randrange(0, height)
+  y = random.randrange(0, width)
+  isFlag = True
+  
+  return x, y, isFlag
+  
 
 def main():
     """Runs minesweeper"""

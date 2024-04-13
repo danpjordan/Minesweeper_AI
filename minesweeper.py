@@ -52,13 +52,15 @@ YELLOW = (255, 255, 0)
 
 # Defines fonts
 NUMBER_FONT = pygame.font.Font(os.path.join(
-    'Ai_Final_Project/Assets', 'ms_font.ttf'), 24)
-DISPLAY_FONT = pygame.font.Font(os.path.join('Ai_Final_Project/Assets', 'clock_font.ttf'), 28)
+    'Assets', 'ms_font.ttf'), 24)
+DISPLAY_FONT = pygame.font.Font(os.path.join('Assets', 'clock_font.ttf'), 28)
 
 # Defines events
 HIT_MINE = pygame.USEREVENT + 1
 FOUND_ALL_MINES = pygame.USEREVENT + 2
 RESET = pygame.USEREVENT + 3
+HINT = pygame.USEREVENT + 4
+
 
 # Defines the width and hight in pixels of the window
 WIN = pygame.display.set_mode((BOARD_WIDTH_PIXELS, BOARD_HEIGHT_PIXELS))
@@ -134,27 +136,43 @@ def draw_display(num_mines_left, time, smile):
     # Defines the starting height in pixels of the display
     STARTING_HEIGHT_DISPLAY = WIDTH_OF_BORDER + WIDTH_OF_BORDER // 2
 
-    # Defines the starting width in pixels of the mine counter display and time counter display
-    MINE_COUNT_DISPLAY_STARTING_WIDTH = BOARD_WIDTH_PIXELS - 3 * SIZE_OF_SQUARE
-    TIME_DISPLAY_STARTING_WIDTH = int(1.5 * WIDTH_OF_BORDER)
+    # Defines the starting width in pixels of the mine counter, time counter, and hint display
+    TIME_DISPLAY_STARTING_WIDTH = BOARD_WIDTH_PIXELS - 3 * SIZE_OF_SQUARE
+    MINE_COUNT_DISPLAY_STARTING_WIDTH = int(1.5 * WIDTH_OF_BORDER)
+    HINT_DISPLAY_STARTING_WIDTH = BOARD_WIDTH_PIXELS - int(6.85 * SIZE_OF_SQUARE) + WIDTH_OF_BORDER // 2
 
-    # Defines the width in pixels of the time and mine display
+    # Defines the width in pixels of the time-mine, and hint display
     TIME_MINE_DISPLAY_WIDTH = 3 * SIZE_OF_SQUARE - int(1.5 * WIDTH_OF_BORDER)
+    HINT_DISPLAY_WIDTH = 4 * SIZE_OF_SQUARE - int(2 * WIDTH_OF_BORDER)
 
-    # Defines and draws the rectangles where the time and mine count will be displayed
+
+    # Defines and draws the rectangles where the time, mine, and hint will be displayed
     DISPLAY_MINES = pygame.Rect(MINE_COUNT_DISPLAY_STARTING_WIDTH, STARTING_HEIGHT_DISPLAY,
                                 TIME_MINE_DISPLAY_WIDTH,  DISPLAY_HEIGHT - WIDTH_OF_BORDER)
     DISPLAY_TIME = pygame.Rect(TIME_DISPLAY_STARTING_WIDTH, STARTING_HEIGHT_DISPLAY,
                                 TIME_MINE_DISPLAY_WIDTH, DISPLAY_HEIGHT - WIDTH_OF_BORDER)
+    DISPLAY_HINT = pygame.Rect(HINT_DISPLAY_STARTING_WIDTH, STARTING_HEIGHT_DISPLAY,
+                                HINT_DISPLAY_WIDTH, DISPLAY_HEIGHT - WIDTH_OF_BORDER)
+    
     pygame.draw.rect(WIN, BLACK, DISPLAY_MINES)
     pygame.draw.rect(WIN, BLACK, DISPLAY_TIME)
+    pygame.draw.rect(WIN, BLACK, DISPLAY_HINT)
+    
 
     # Seperates the time input into a ones, tens, and hundreds value and draws it into the time rectangle
     time_arr = time % 10, time // 10 % 10, time // 100 % 10
     for i in range(3):
         draw_text = DISPLAY_FONT.render(str(time_arr[2 - i]), 1, RED)
-        WIN.blit(draw_text, (MINE_COUNT_DISPLAY_STARTING_WIDTH + 4 + i *
+        WIN.blit(draw_text, (TIME_DISPLAY_STARTING_WIDTH + 4 + i *
                  (TIME_MINE_DISPLAY_WIDTH // 3), STARTING_HEIGHT_DISPLAY + 7))
+
+    # Displays the word hint
+    hint_text = 'HINT'
+    for i in range(4):
+        draw_text = DISPLAY_FONT.render(str(hint_text[i]), 1, RED)
+        WIN.blit(draw_text, (HINT_DISPLAY_STARTING_WIDTH + 4 + i *
+                 (TIME_MINE_DISPLAY_WIDTH // 3), STARTING_HEIGHT_DISPLAY + 7))
+
 
     # Seperates the number of mines left input into a ones, tens, and hundreds value and draws it into the mines rectangle
     # If the number of mines is less than 0, only the ones and tens places are consider and a negitive sign is placed in the hundreds place
@@ -163,18 +181,18 @@ def draw_display(num_mines_left, time, smile):
         for i in range(3):
             draw_text = DISPLAY_FONT.render(
                 str(num_mines_left_arr[2 - i]), 1, RED)
-            WIN.blit(draw_text, (TIME_DISPLAY_STARTING_WIDTH + 4 + i *
+            WIN.blit(draw_text, (MINE_COUNT_DISPLAY_STARTING_WIDTH + 4 + i *
                      (TIME_MINE_DISPLAY_WIDTH // 3), STARTING_HEIGHT_DISPLAY + 7))
     else:
         num_mines_left_arr = -1 * num_mines_left % 10, -1 * \
             num_mines_left // 10 % 10, num_mines_left // 100 % 10
         draw_text = DISPLAY_FONT.render("-", 1, RED)
-        WIN.blit(draw_text, (TIME_DISPLAY_STARTING_WIDTH + 4,
+        WIN.blit(draw_text, (MINE_COUNT_DISPLAY_STARTING_WIDTH + 4,
                  STARTING_HEIGHT_DISPLAY + (DISPLAY_HEIGHT - WIDTH_OF_BORDER) // 2 - 2))
         for i in range(1, 3):
             draw_text = DISPLAY_FONT.render(
                 str(num_mines_left_arr[2 - i]), 1, RED)
-            WIN.blit(draw_text, (TIME_DISPLAY_STARTING_WIDTH + 4 + i *
+            WIN.blit(draw_text, (MINE_COUNT_DISPLAY_STARTING_WIDTH + 4 + i *
                      (TIME_MINE_DISPLAY_WIDTH // 3), STARTING_HEIGHT_DISPLAY + 7))
 
     # Defines and draws the rectangle for the smile / reset button
@@ -269,6 +287,11 @@ def draw_boxes(u_board):
                 draw_text = NUMBER_FONT.render("*", 1, BLACK)
                 WIN.blit(draw_text, (box_starting_width + SIZE_OF_SQUARE / 2 - draw_text.get_width(
                 ) / 2, box_starting_height + SIZE_OF_SQUARE / 2 - draw_text.get_height() / 2))
+            elif u_board[i][j] == "R":
+                # Draws the mine which was revealed by user
+                draw_text = NUMBER_FONT.render("*", 1, RED)
+                WIN.blit(draw_text, (box_starting_width + SIZE_OF_SQUARE / 2 - draw_text.get_width(
+                ) / 2, box_starting_height + SIZE_OF_SQUARE / 2 - draw_text.get_height() / 2))
             elif u_board[i][j] == "F":
                 # Draws the flag
                 pygame.draw.polygon(WIN, RED, ((box_starting_width + 1 + SIZE_OF_SQUARE / 2, box_starting_height + 6), (box_starting_width +
@@ -297,10 +320,20 @@ def draw_boxes(u_board):
 def get_grid_cord(x, y):
     """Gets the grid coordinate that coresponds to the x and y pixels"""
 
+    DISPLAY_BUTON_HEIGHT_UPPER_BOUND = (WIDTH_OF_BORDER + WIDTH_OF_BORDER // 2) + (DISPLAY_HEIGHT - WIDTH_OF_BORDER)
+    DISPLAY_BUTON_HEIGHT_LOWER_BOUND = WIDTH_OF_BORDER + WIDTH_OF_BORDER // 2
+    
+    HINT_DISPLAY_STARTING_WIDTH = BOARD_WIDTH_PIXELS - int(6.85 * SIZE_OF_SQUARE) + WIDTH_OF_BORDER // 2
+    HINT_DISPLAY_WIDTH = 4 * SIZE_OF_SQUARE - int(2 * WIDTH_OF_BORDER)
+    
     # Tests if the user clicked the reset button
-    if x > BOARD_WIDTH_PIXELS // 2 - (DISPLAY_HEIGHT - WIDTH_OF_BORDER) // 2 and x < (BOARD_WIDTH_PIXELS // 2 - (DISPLAY_HEIGHT - WIDTH_OF_BORDER) // 2) + (DISPLAY_HEIGHT - WIDTH_OF_BORDER) and y > WIDTH_OF_BORDER + WIDTH_OF_BORDER // 2 and y < (WIDTH_OF_BORDER + WIDTH_OF_BORDER // 2) + (DISPLAY_HEIGHT - WIDTH_OF_BORDER):
+    if x > BOARD_WIDTH_PIXELS // 2 - (DISPLAY_HEIGHT - WIDTH_OF_BORDER) // 2 and x < (BOARD_WIDTH_PIXELS // 2 - (DISPLAY_HEIGHT - WIDTH_OF_BORDER) // 2) + (DISPLAY_HEIGHT - WIDTH_OF_BORDER) and y > DISPLAY_BUTON_HEIGHT_LOWER_BOUND and y < DISPLAY_BUTON_HEIGHT_UPPER_BOUND:
         pygame.event.post(pygame.event.Event(RESET))
-
+    
+    # Tests if the user clicked the hint button
+    if x > HINT_DISPLAY_STARTING_WIDTH and x < HINT_DISPLAY_STARTING_WIDTH + HINT_DISPLAY_WIDTH and y > DISPLAY_BUTON_HEIGHT_LOWER_BOUND // 2 and y < DISPLAY_BUTON_HEIGHT_UPPER_BOUND:
+        pygame.event.post(pygame.event.Event(HINT))
+        
     # Determines what box, if any, the user clicked
     cords = [-1, -1]
     if x > GAME_STARTING_WIDTH and x < BOARD_WIDTH_PIXELS - WIDTH_OF_BORDER - MINE_BORDER // 2:
@@ -308,10 +341,6 @@ def get_grid_cord(x, y):
     if y > GAME_STARTING_HEIGHT and y < BOARD_HEIGHT_PIXELS - WIDTH_OF_BORDER - MINE_BORDER // 2:
         cords[1] = (y - GAME_STARTING_HEIGHT) // SIZE_OF_SQUARE
     return cords
-
-
-def draw_single_box(x, y):
-    pass
 
 
 def main():
@@ -335,7 +364,7 @@ def main():
     ms_funct.fill_game_board(
         game_board, GAME_WIDTH_TILES, GAME_HEIGHT_TILES, MINES)
 
-    # minesweeper.print_board(game_board, GAME_WIDTH_TILES, GAME_HEIGHT_TILES) # Used to display where mines are for testing
+    ms_funct.print_board(game_board, GAME_WIDTH_TILES, GAME_HEIGHT_TILES) # Used to display where mines are for testing
 
     draw_window()
 
@@ -353,6 +382,7 @@ def main():
 
         # Iterates through all events
         for event in pygame.event.get():
+          
             # Quits game if user exists out
             if event.type == pygame.QUIT:
                 run = False
@@ -360,6 +390,8 @@ def main():
 
             # Runs when the user clicks their mouse
             if event.type == pygame.MOUSEBUTTONDOWN:
+                # ms_funct.print_board(user_board, GAME_WIDTH_TILES, GAME_HEIGHT_TILES) # Used to display where mines are for testing
+              
                 # If left click, the coordinates are checked to see what tile the user is attempting to reveal
                 if pygame.mouse.get_pressed() == (1, 0, 0):
                     button_pressed = get_grid_cord(
@@ -368,6 +400,8 @@ def main():
                         # If valid tile, the move is attempted and if the user revealed a mine an event is posted to end the game
                         if button_pressed[0] != -1 and button_pressed[1] != -1:
                             if ms_funct.make_move(game_board, user_board, button_pressed[1], button_pressed[0], GAME_WIDTH_TILES, GAME_HEIGHT_TILES):
+                                game_board[button_pressed[1]][button_pressed[0]] = 'R'
+                                user_board[button_pressed[1]][button_pressed[0]] = 'R'
                                 pygame.event.post(pygame.event.Event(HIT_MINE))
                 # If right click, the coordinates are checked to see what tile the user is attempting to flag
                 elif pygame.mouse.get_pressed() == (0, 0, 1):
@@ -378,13 +412,15 @@ def main():
                         if button_pressed[0] != -1 and button_pressed[1] != -1:
                             if ms_funct.flag(user_board, button_pressed[1], button_pressed[0], GAME_WIDTH_TILES, GAME_HEIGHT_TILES):
                                 draw_window()
+                                pass
 
             # Runs when the user presses a key
             if event.type == pygame.KEYDOWN and not pause:
                 # If the key is left control, the game reveals a random tile that is not a mine or removes a misplaced flag
                 if event.key == pygame.K_LCTRL:
-                    if(ms_funct.hint(game_board, user_board, GAME_WIDTH_TILES, GAME_HEIGHT_TILES, MINES)):
-                        pass
+                    # if(ms_funct.hint(game_board, user_board, GAME_WIDTH_TILES, GAME_HEIGHT_TILES, MINES)):
+                    ms_funct.hint(game_board, user_board, GAME_WIDTH_TILES, GAME_HEIGHT_TILES, MINES)
+
 
             # Runs if a mine was hit
             if event.type == HIT_MINE:
@@ -402,6 +438,22 @@ def main():
             # Runs if game is reset
             if event.type == RESET:
                 run = False
+                
+            # Runs if game is reset
+            if event.type == HINT:
+                # uses the ai to generate the postion (x, y) of the next best tile to reveal
+                # also indicites if the move should reveal a tile or place a flag
+                x, y, placeFlag = ms_funct.ai_move(user_board, GAME_WIDTH_TILES, GAME_HEIGHT_TILES, MINES)
+                
+                if (placeFlag):
+                    ms_funct.flag(user_board, x, y, GAME_WIDTH_TILES, GAME_HEIGHT_TILES)
+                else:
+                    # makes a move on that tile
+                    if ms_funct.make_move(game_board, user_board, x, y, GAME_WIDTH_TILES, GAME_HEIGHT_TILES):
+                        game_board[x][y] = 'R'
+                        user_board[x][y] = 'R'
+                        pygame.event.post(pygame.event.Event(HIT_MINE))
+                    
 
         if run == True:
             # Checks if the user has won the game and if so an event is posted
@@ -412,6 +464,7 @@ def main():
             num_mines_left = ms_funct.get_mines_left(user_board, MINES)
             draw_display(num_mines_left, time, smile)
             draw_boxes(user_board)
+            
 
     return True
 
