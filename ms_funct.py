@@ -4,6 +4,13 @@
 
 import random
 
+#Set the seed of the program
+def set_random_seed(random_seed = random.randint(0,1000000), print_out = True):
+    if print_out:
+        print(f"Random Seed: {random_seed}")
+    random.seed(random_seed)
+
+
 def print_board(board, width, height):
     """Prints the board to the console"""
 

@@ -50,6 +50,9 @@ MAROON = (129, 1, 2)
 TEAL = (0, 127, 126)
 YELLOW = (255, 255, 0)
 
+#Set random seed
+ms_funct.set_random_seed(1)
+
 # Defines fonts
 NUMBER_FONT = pygame.font.Font(os.path.join(
     'Assets', 'ms_font.ttf'), 24)
