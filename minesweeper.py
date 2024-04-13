@@ -364,7 +364,7 @@ def main():
     ms_funct.fill_game_board(
         game_board, GAME_WIDTH_TILES, GAME_HEIGHT_TILES, MINES)
 
-    ms_funct.print_board(game_board, GAME_WIDTH_TILES, GAME_HEIGHT_TILES) # Used to display where mines are for testing
+    # ms_funct.print_board(game_board, GAME_WIDTH_TILES, GAME_HEIGHT_TILES) # Used to display where mines are for testing
 
     draw_window()
 
@@ -443,16 +443,17 @@ def main():
             if event.type == HINT:
                 # uses the ai to generate the postion (x, y) of the next best tile to reveal
                 # also indicites if the move should reveal a tile or place a flag
-                x, y, placeFlag = ms_funct.ai_move(user_board, GAME_WIDTH_TILES, GAME_HEIGHT_TILES, MINES)
-                
-                if (placeFlag):
-                    ms_funct.flag(user_board, x, y, GAME_WIDTH_TILES, GAME_HEIGHT_TILES)
-                else:
-                    # makes a move on that tile
-                    if ms_funct.make_move(game_board, user_board, x, y, GAME_WIDTH_TILES, GAME_HEIGHT_TILES):
-                        game_board[x][y] = 'R'
-                        user_board[x][y] = 'R'
-                        pygame.event.post(pygame.event.Event(HIT_MINE))
+                if (not pause):
+                    x, y, placeFlag = ms_funct.ai_move(user_board, GAME_WIDTH_TILES, GAME_HEIGHT_TILES)
+
+                    if (placeFlag):
+                        ms_funct.flag(user_board, x, y, GAME_WIDTH_TILES, GAME_HEIGHT_TILES)
+                    else:
+                        # makes a move on that tile
+                        if ms_funct.make_move(game_board, user_board, x, y, GAME_WIDTH_TILES, GAME_HEIGHT_TILES):
+                            game_board[x][y] = 'R'
+                            user_board[x][y] = 'R'
+                            pygame.event.post(pygame.event.Event(HIT_MINE))
                     
 
         if run == True:

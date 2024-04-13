@@ -150,7 +150,7 @@ def flag(u_board, x, y, width, height):
             return False
         return False
     else:
-        print("Invlaid Move")
+        print("Invalid Move")
         return False
 
 
@@ -198,13 +198,86 @@ def hint(g_board, u_board, width, height, mines):
         return update
     return False
 
-def ai_move(u_board, width, height, mines):
-  print("Making a move")
-  x = random.randrange(0, height)
-  y = random.randrange(0, width)
-  isFlag = True
-  
-  return x, y, isFlag
+def count_num_adj_flags(u_board, x, y, width, height):
+    num_adj_flags = 0;
+    for k in range(3):
+        for l in range(3):
+            if not (k == 1 and l == 1):
+                row = x - 1 + k
+                col = y - 1 + l
+                if row >= 0 and col >= 0 and row < height and col < width:
+                    if u_board[row][col] == "F":
+                        num_adj_flags += 1
+    return num_adj_flags
+
+
+def count_num_adj_unrevealed_tiles(u_board, x, y, width, height):
+    num_adj_unrevealed_tiles = 0;
+    for k in range(3):
+        for l in range(3):
+            if not (k == 1 and l == 1):
+                row = x - 1 + k
+                col = y - 1 + l
+                if row >= 0 and col >= 0 and row < height and col < width:
+                    if u_board[row][col] == "*":
+                        num_adj_unrevealed_tiles += 1
+    return num_adj_unrevealed_tiles
+    
+
+def get_unrevealed_tile(u_board, x, y, width, height):
+    for k in range(3):
+        for l in range(3):
+            if not (k == 1 and l == 1):
+                row = x - 1 + k
+                col = y - 1 + l
+                if row >= 0 and col >= 0 and row < height and col < width:
+                    if u_board[row][col] == "*":
+                        return row, col
+    return -1, -1
+
+def safe_move(u_board, width, height):
+    for i in range(height):
+        for j in range(width):
+            # itterate through each revealed number-tile
+            if u_board[i][j] != "*" and u_board[i][j] != "-" and u_board[i][j] != "F":
+                tile_num = u_board[i][j]
+                num_adj_flags = count_num_adj_flags(u_board, i, j, width, height)
+                num_adj_unrevealed_tiles = count_num_adj_unrevealed_tiles(u_board, i, j, width, height)
+                
+                # check if there is a tile to reveal when the number of adjacent 
+                # flags equals the tile number
+                if (tile_num == num_adj_flags):
+                    x, y = get_unrevealed_tile(u_board, i, j, width, height)
+                    if (x != -1):
+                        print(x, y)
+                        return True, x, y, False
+                    else:
+                        continue
+               
+                # check if there is a flag to reveal when the tile numbers equals the
+                # number of adjacent unrevealed tiles plus the number of adjacent flags
+                if (tile_num == num_adj_unrevealed_tiles + num_adj_flags):
+                    x, y = get_unrevealed_tile(u_board, i, j, width, height)
+                    if (x != -1):
+                        print(x, y)
+                        return True, x, y, True
+                    else:
+                        continue 
+                
+    return False, -1, -1, False
+
+def best_availible_move(u_board, width, height):
+    print("Safe move not found")
+    return -1, -1, True
+
+def ai_move(u_board, width, height):
+    print("Making a move")
+
+    has_safe_move, x, y, isFlag = safe_move(u_board, width, height)
+    if (has_safe_move):
+        return x, y, isFlag
+   
+    return best_availible_move(u_board, width, height)
   
 
 def main():
@@ -250,7 +323,7 @@ def main():
                 # If valid tile, a flag is placed
                 flag(user_board, int(y), int(x), WIDTH, HEIGHT)
             except ValueError:
-                print("Invlaid Input")
+                print("Invalid Input")
         #  The game reveals a random tile that is not a mine or removes a misplaced flag
         elif y == "h" or x == "h":
             hint(game_board, user_board, WIDTH, HEIGHT, MINES)
@@ -260,7 +333,7 @@ def main():
                 run = not make_move(game_board, user_board,
                                     int(y), int(x), WIDTH, HEIGHT)
             except ValueError:
-                print("Invlaid Input")
+                print("Invalid Input")
 
         # Displays if the user won or lost the game if the game has ended
         if check_win(user_board, WIDTH, HEIGHT, MINES):
