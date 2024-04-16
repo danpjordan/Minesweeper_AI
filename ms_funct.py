@@ -160,6 +160,19 @@ def flag(u_board, x, y, width, height):
         print("Invalid Move")
         return False
 
+def half_flag(u_board, x, y, width, height):
+    """Attempts to place a half-flag at position x, y."""
+    if x >= 0 and y >= 0 and x < height and y < width:
+        if u_board[x][y] == "H":
+            u_board[x][y] = "*"
+            return True
+        elif u_board[x][y] == "*":
+            u_board[x][y] = "H"
+            return False
+        return False
+    else:
+        print("Invalid Move")
+        return False
 
 def get_mines_left(u_board, mines):
     """Returns the number of total mines minus the number of flags the user has placed"""
@@ -206,7 +219,7 @@ def hint(g_board, u_board, width, height, mines):
     return False
 
 def count_num_adj_flags(u_board, x, y, width, height):
-    num_adj_flags = 0;
+    num_adj_flags = 0
     for k in range(3):
         for l in range(3):
             if not (k == 1 and l == 1):
@@ -217,9 +230,26 @@ def count_num_adj_flags(u_board, x, y, width, height):
                         num_adj_flags += 1
     return num_adj_flags
 
+def count_num_adj_half_flags(u_board, x, y, width, height):
+    num_adj_half_flags = 0
+    for k in range(3):
+        for l in range(3):
+            if not (k == 1 and l == 1):
+                row = x - 1 + k
+                col = y - 1 + l
+                if row >= 0 and col >= 0 and row < height and col < width:
+                    if u_board[row][col] == "H":
+                        num_adj_half_flags += 1
+    return num_adj_half_flags
+
+def reset_half_flags(u_board, width, height):
+    for i in range(height):
+        for j in range(width):
+            if u_board[i][j] == "H":
+                u_board[i][j] = "*"
 
 def count_num_adj_unrevealed_tiles(u_board, x, y, width, height):
-    num_adj_unrevealed_tiles = 0;
+    num_adj_unrevealed_tiles = 0
     for k in range(3):
         for l in range(3):
             if not (k == 1 and l == 1):
@@ -245,10 +275,11 @@ def get_unrevealed_tile(u_board, x, y, width, height):
 def safe_move(u_board, width, height):
     for i in range(height):
         for j in range(width):
-            # itterate through each revealed number-tile
-            if u_board[i][j] != "*" and u_board[i][j] != "-" and u_board[i][j] != "F":
+            # iterate through each revealed number-tile
+            if u_board[i][j] != "*" and u_board[i][j] != "-" and u_board[i][j] != "F" and u_board[i][j] != "H":
                 tile_num = u_board[i][j]
                 num_adj_flags = count_num_adj_flags(u_board, i, j, width, height)
+                num_adj_half_flags = count_num_adj_half_flags(u_board, i, j, width, height)
                 num_adj_unrevealed_tiles = count_num_adj_unrevealed_tiles(u_board, i, j, width, height)
                 
                 # check if there is a tile to reveal when the number of adjacent 
@@ -263,7 +294,7 @@ def safe_move(u_board, width, height):
                
                 # check if there is a flag to reveal when the tile numbers equals the
                 # number of adjacent unrevealed tiles plus the number of adjacent flags
-                if (tile_num == num_adj_unrevealed_tiles + num_adj_flags):
+                if (tile_num == num_adj_unrevealed_tiles + num_adj_half_flags + num_adj_flags):
                     x, y = get_unrevealed_tile(u_board, i, j, width, height)
                     if (x != -1):
                         print(x, y)
@@ -273,9 +304,54 @@ def safe_move(u_board, width, height):
                 
     return False, -1, -1, False
 
-def best_availible_move(u_board, width, height):
-    print("Safe move not found")
+def place_half_flags(u_board, width, height):
+    for i in range(height):
+        for j in range(width):
+            # iterate through each revealed number-tile
+            if u_board[i][j] != "*" and u_board[i][j] != "-" and u_board[i][j] != "F" and u_board[i][j] != "H":
+                tile_num = u_board[i][j]
+                num_adj_flags = count_num_adj_flags(u_board, i, j, width, height)
+                num_adj_half_flags = count_num_adj_half_flags(u_board, i, j, width, height)
+                num_adj_unrevealed_tiles = count_num_adj_unrevealed_tiles(u_board, i, j, width, height)
+                if(num_adj_unrevealed_tiles + num_adj_half_flags == 2 and tile_num - num_adj_flags == 1):
+                    while(count_num_adj_unrevealed_tiles(u_board,i, j, width, height) != 0):
+                        target_x, target_y = get_unrevealed_tile(u_board, i, j, width, height)
+                        u_board[target_x][target_y] = "H"
+                    pass
+                    
+                    
     return -1, -1, True
+def best_availible_move(u_board, width, height):
+    place_half_flags(u_board, width, height)
+    for i in range(height):
+        for j in range(width):
+            # iterate through each revealed number-tile
+            if u_board[i][j] != "*" and u_board[i][j] != "-" and u_board[i][j] != "F" and u_board[i][j] != "H":
+                tile_num = u_board[i][j]
+                num_adj_flags = count_num_adj_flags(u_board, i, j, width, height)
+                num_adj_half_flags = count_num_adj_half_flags(u_board, i, j, width, height)
+                num_adj_unrevealed_tiles = count_num_adj_unrevealed_tiles(u_board, i, j, width, height)
+                if(num_adj_unrevealed_tiles == 1 and num_adj_half_flags == 2):
+                    print("HALF FLAGS USED")
+                    target_x, target_y = get_unrevealed_tile(u_board, i, j, width, height)
+                    reset_half_flags(u_board,width,height)
+                    if tile_num - num_adj_flags > 1:
+                        return target_x, target_y, True
+                    else:
+                        return target_x, target_y, False
+    
+    reset_half_flags(u_board,width,height)
+    #Random move:
+    moves = []
+    for i in range(height):
+        for j in range(width):
+            if u_board[i][j] == "*":
+                moves.append((i, j))
+    if len(moves) > 0:
+        rand_move = moves[random.randint(0,len(moves)-1)]
+        return rand_move[0], rand_move[1], False
+    else:
+        return -1, -1, True
 
 def ai_move(u_board, width, height):
     print("Making a move")
@@ -283,8 +359,8 @@ def ai_move(u_board, width, height):
     has_safe_move, x, y, isFlag = safe_move(u_board, width, height)
     if (has_safe_move):
         return x, y, isFlag
-   
-    return best_availible_move(u_board, width, height)
+    else:
+        return best_availible_move(u_board, width, height)
   
 
 def main():

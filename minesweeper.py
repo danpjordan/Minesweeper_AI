@@ -51,7 +51,7 @@ TEAL = (0, 127, 126)
 YELLOW = (255, 255, 0)
 
 #Set random seed
-ms_funct.set_random_seed(1)
+ms_funct.set_random_seed(5)
 
 # Defines fonts
 NUMBER_FONT = pygame.font.Font(os.path.join(
@@ -308,6 +308,17 @@ def draw_boxes(u_board):
                 pygame.draw.rect(WIN, BLACK, flag_pole)
                 pygame.draw.rect(WIN, BLACK, flag_base)
                 pygame.draw.rect(WIN, BLACK, flag_base2)
+            elif u_board[i][j] == "H":
+                #Draw a half-flag
+                flag_pole = pygame.Rect(
+                    box_starting_width + SIZE_OF_SQUARE / 2, box_starting_height + 20, 2, 10)
+                flag_base = pygame.Rect(box_starting_width + 1 + SIZE_OF_SQUARE / 6,
+                                        box_starting_height + 32, int(SIZE_OF_SQUARE * (2 / 3)), 4)
+                flag_base2 = pygame.Rect(
+                    box_starting_width + 1 + SIZE_OF_SQUARE / 4, box_starting_height + 30, int(SIZE_OF_SQUARE / 2), 2)
+                pygame.draw.rect(WIN, BLACK, flag_pole)
+                pygame.draw.rect(WIN, BLACK, flag_base)
+                pygame.draw.rect(WIN, BLACK, flag_base2)
 
     # Draws lines to divide the boxes
     for i in range(0, GAME_HEIGHT_TILES + 1):
@@ -385,7 +396,7 @@ def main():
 
         # Iterates through all events
         for event in pygame.event.get():
-          
+
             # Quits game if user exists out
             if event.type == pygame.QUIT:
                 run = False
@@ -468,7 +479,23 @@ def main():
             num_mines_left = ms_funct.get_mines_left(user_board, MINES)
             draw_display(num_mines_left, time, smile)
             draw_boxes(user_board)
-            
+        
+        # Run the AI
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_a] and keys[pygame.K_i]:
+            if (not pause):
+                x, y, placeFlag = ms_funct.ai_move(user_board, GAME_WIDTH_TILES, GAME_HEIGHT_TILES)
+
+                if (placeFlag):
+                    ms_funct.flag(user_board, x, y, GAME_WIDTH_TILES, GAME_HEIGHT_TILES)
+                else:
+                    # makes a move on that tile
+                    if ms_funct.make_move(game_board, user_board, x, y, GAME_WIDTH_TILES, GAME_HEIGHT_TILES):
+                        game_board[x][y] = 'R'
+                        user_board[x][y] = 'R'
+                        pygame.event.post(pygame.event.Event(HIT_MINE))
+        if keys[pygame.K_F5]:
+            pygame.event.post(pygame.event.Event(RESET))
 
     return True
 
